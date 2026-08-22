@@ -1,0 +1,12 @@
+{
+  "name": "mouse-php/create-mouse-app",
+  "description": "Global spin-up installer for mouse-php applications.",
+  "type": "library",
+  "license": "MIT",
+  "bin": [
+    "bin/create-mouse-app"
+  ],
+  "require": {
+    "php": ">=8.2"
+  }
+}

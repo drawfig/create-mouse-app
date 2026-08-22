@@ -1,0 +1,35 @@
+#!/usr/bin/env php
+<?php
+
+$project_name = $argv[1] ?? null;
+
+if (!$project_name) {
+    echo "\033[31mUsage:\033[0m create-mouse-app <project-name>\n";
+    exit(1);
+}
+
+$target_dir = getcwd() . '/' . $project_name;
+
+if (file_exists($target_dir)) {
+    echo "\033[31mError:\033[0m Directory already exists.\n";
+    exit(1);
+}
+
+echo "\033[32m🐭 Bootstrapping new mouse-php project in ./$project_name...\033[0m\n";
+
+$repo = 'https://github.com/drawfig/mouse-php.git';
+exec("git clone --quiet --depth=1 {$repo} " . escapeshellarg($target_dir), $output, $returnCode);
+
+if ($returnCode !== 0) {
+    echo "\033[31mError:\033[0m Failed to clone repository.\n";
+    exit(1);
+}
+
+exec("rm -rf " . escapeshellarg($target_dir . '/.git'));
+
+chdir($target_dir);
+if (file_exists('./squeak')) {
+    exec('php squeak init');
+}
+
+echo "\033[32m✨ Success!\033[0m Run 'cd $project_name && ./squeak serve' to get started.\n";
