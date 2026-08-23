@@ -29,7 +29,11 @@ exec("rm -rf " . escapeshellarg($target_dir . '/.git'));
 
 chdir($target_dir);
 if (file_exists('./squeak')) {
-    exec('php squeak init');
+    passthru('php squeak init', $squeak_resp);
+    if ($squeak_resp !== 0) {
+        echo "\033[31mError:\033[0m Failed to initialize Squeak.\n";
+        exit(1);
+    }
 }
 
 echo "\033[32m✨ Success!\033[0m Run 'cd $project_name && ./squeak serve' to get started.\n";
