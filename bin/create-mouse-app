@@ -1,6 +1,19 @@
 #!/usr/bin/env php
 <?php
 
+function isWSL() {
+    if (isset($_SERVER['WSL_DISTRO_NAME']) || isset($_SERVER['WSL_INTEROP'])) {
+        return true;
+    }
+
+    if (file_exists('/proc/version')) {
+        $version = file_get_contents('/proc/version');
+        return stripos($version, 'microsoft') !== false || stripos($version, 'wsl') !== false;
+    }
+
+    return false;
+}
+
 $project_name = $argv[1] ?? null;
 
 if (!$project_name) {
@@ -28,7 +41,29 @@ if ($returnCode !== 0) {
 exec("rm -rf " . escapeshellarg($target_dir . '/.git'));
 
 chdir($target_dir);
-if (file_exists('./squeak')) {
+if(!file_exists('./squeak')) {
+    echo "\033[31mError:\033[0m squeak executable not found.\n";
+    exit(1);
+}
+
+if(isWSL()) {
+    $descriptors = [
+            0 => STDIN,  // Pass parent STDIN directly for interactive prompts
+            1 => STDOUT, // Pass parent STDOUT directly for live console output
+            2 => STDERR, // Pass parent STDERR directly for real-time errors
+    ];
+
+    $process = proc_open("php squeak init", $descriptors, $pipes);
+
+    if(is_resource($process)) {
+        $exitCode = proc_close($process);
+        if ($exitCode !== 0) {
+            echo "\033[31mError:\033[0m Failed to initialize Squeak.\n";
+            exit(1);
+        }
+    }
+}
+else {
     passthru('php squeak init', $squeak_resp);
     if ($squeak_resp !== 0) {
         echo "\033[31mError:\033[0m Failed to initialize Squeak.\n";
@@ -36,4 +71,6 @@ if (file_exists('./squeak')) {
     }
 }
 
-echo "\033[32m✨ Success!\033[0m Run 'cd $project_name && ./squeak serve' to get started.\n";
+
+
+echo "\033[32m✨ Success!\033[0m Run 'cd $project_name && php squeak' to get started.\n";
